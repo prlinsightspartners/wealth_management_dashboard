@@ -18,6 +18,8 @@ import streamlit as st
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
+import config as cfg
+
 load_dotenv()  # no-op in prod if no .env file is present
 
 
@@ -48,6 +50,10 @@ def get_client() -> Client:
 
     return create_client(url, key)
 
+def _table(table_name: str):
+    """Return a query scoped to the application's Supabase schema."""
+    return get_client().schema(cfg.SUPABASE_SCHEMA).table(table_name)
+
 
 def fetch_all(
     table_name: str,
@@ -68,12 +74,11 @@ def fetch_all(
     `max_rows` optionally caps how many rows are pulled (useful for very large
     tables like Transactions when only a recent window is needed).
     """
-    client = get_client()
     rows: List[Dict[str, Any]] = []
     start = 0
 
     while True:
-        query = client.table(table_name).select(columns)
+        query = _table(table_name).select(columns)
 
         if filters:
             for f in filters:
@@ -102,10 +107,33 @@ def fetch_all(
 
 def get_row_count(table_name: str, filters: Optional[List[Callable[[Any], Any]]] = None) -> int:
     """Return an exact row count for a table without pulling the data itself."""
-    client = get_client()
-    query = client.table(table_name).select("*", count="exact", head=True)
+    query = _table(table_name).select("*", count="exact", head=True)
     if filters:
         for f in filters:
             query = f(query)
     response = query.execute()
     return response.count or 0
+
+
+def check_data_readiness() -> dict:
+    """Check that the configured schema exposes usable dashboard tables."""
+    result = {"errors": [], "warnings": [], "counts": {}}
+
+    for table_name, columns in cfg.REQUIRED_COLUMNS.items():
+        try:
+            # This catches missing tables and columns, including empty tables.
+            _table(table_name).select(",".join(columns)).limit(1).execute()
+            count = get_row_count(table_name)
+            result["counts"][table_name] = count
+            if table_name in cfg.REQUIRED_NONEMPTY_TABLES and count == 0:
+                result["errors"].append(f"{table_name} is empty.")
+            elif count == 0:
+                result["warnings"].append(
+                    f"{table_name} is empty; related dashboard sections will have no data."
+                )
+        except Exception as exc:
+            result["errors"].append(
+                f"{table_name} is unavailable or missing required columns: {exc}"
+            )
+
+    return result

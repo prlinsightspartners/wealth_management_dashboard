@@ -10,6 +10,7 @@ import pandas as pd
 import streamlit as st
 
 import config as cfg
+from db.supabase_client import check_data_readiness
 from utils import data_loader as dl
 from utils import metrics as mx
 from utils import charts as ch
@@ -46,6 +47,20 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 # Load data
 # ---------------------------------------------------------------------------
+readiness = check_data_readiness()
+if readiness["errors"]:
+    st.error("Supabase data is not ready for this dashboard.")
+    for error in readiness["errors"]:
+        st.error(error)
+    st.info(
+        f"The app is querying the `{cfg.SUPABASE_SCHEMA}` schema. "
+        "Check SUPABASE_URL and SUPABASE_KEY if this is unexpected."
+    )
+    st.stop()
+
+for warning in readiness["warnings"]:
+    st.warning(warning)
+
 advisors_df = dl.load_advisors()
 clients_df = dl.load_clients()
 accounts_df = dl.load_accounts()

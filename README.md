@@ -22,13 +22,14 @@ management firm, reading live from Supabase. Built on the 10 core tables:
 ```
 wealth-dashboard/
 ├── app.py                          # Home page (Executive Summary)
-├── config.py                       # Table names, theme colors, shared settings
+├── config.py                       # Schema, table names, required columns, settings
 ├── requirements.txt
 ├── .env.example                    # Copy to .env for local dev
 ├── .gitignore
 ├── README.md
 ├── db/
-│   └── supabase_client.py          # Connection + paginated fetch helper
+│   ├── supabase_client.py           # Connection, readiness check, paginated fetch
+│   └── check_supabase_access.py     # Standalone credentials/schema diagnostic
 ├── utils/
 │   ├── data_loader.py              # Cached per-table loaders (st.cache_data)
 │   ├── metrics.py                  # KPI / aggregate computation logic
@@ -41,52 +42,39 @@ wealth-dashboard/
 │   ├── 4_💰_Asset_Allocation.py
 │   └── 5_💳_Transactions_Activity.py
 ├── sql/
-│   └── schema.sql                  # Run in Supabase SQL Editor first
+│   └── schema.sql                  # Reference schema for a new database
 ├── scripts/
-│   └── load_csv_to_supabase.py     # One-time CSV -> Supabase loader
+│   └── load_csv_to_supabase.py     # Optional CSV -> Supabase refresh utility
 └── .streamlit/
     ├── config.toml                 # Theme
     └── secrets.toml.example        # Copy to secrets.toml for Streamlit Cloud
 ```
 
-## 1. Set up Supabase
+## 1. Connect the existing Supabase database
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor** and run the contents of `sql/schema.sql`. This creates
-   all 10 tables with correct types, foreign keys, indexes, and a permissive
-   read-only Row Level Security policy (adjust the policy for your real auth
-   model before production use).
-3. Grab your credentials from **Project Settings > API**:
-   - `Project URL` → `SUPABASE_URL`
-   - `anon` `public` key → `SUPABASE_KEY` (used by the Streamlit app; read-only)
-   - `service_role` key → only used locally by the loader script below, never
-     shipped to the deployed app
+The application expects the existing tables and data in the Supabase
+`asset_management` schema. It does not create or alter tables at startup.
 
-## 2. Load the synthetic data
+1. Grab the credentials from **Project Settings > API**:
+  - `Project URL` → `SUPABASE_URL`
+  - `anon` `public` key → `SUPABASE_KEY` (used by the Streamlit app; read-only)
+2. Confirm that the anon key has `SELECT` access to the `asset_management`
+  schema and its tables.
 
-Put your generated CSVs (e.g. `InvestmentAdvisors.csv`, `Clients.csv`, …) in a
-`data/` folder at the project root, then:
+The ten expected tables are `InvestmentAdvisors`, `Clients`, `Accounts`,
+`Portfolios`, `Assets`, `PortfolioHoldings`, `Transactions`,
+`ClientInteractions`, `PortfolioPerformanceMetrics`, and
+`AdvisorPerformanceMetrics`.
+
+The `sql/schema.sql` file is retained as a reference for the expected table
+structure. Do not run it against the existing database unless you are setting
+up a separate database and have reviewed its schema and policies.
+
+## 2. Configure the app's credentials
+
+For local development, create a `.env` file with the anon key:
 
 ```bash
-pip install -r requirements.txt
-cp .env.example .env          # fill in SUPABASE_URL + the service_role key
-python scripts/load_csv_to_supabase.py --data-dir ./data
-```
-
-The script loads tables in dependency order (parents before children) and
-upserts in batches, so it's safe to re-run if you regenerate the data.
-
-Alternatively, for smaller tables you can use Supabase's **Table Editor >
-Insert > Import data from CSV** directly, provided you load parent tables
-first (advisors → clients → accounts → portfolios → assets → holdings /
-transactions / interactions → the two metrics tables).
-
-## 3. Configure the app's credentials
-
-For local development, edit `.env` (already created in step 2) with the
-**anon** key:
-
-```
 SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_KEY=your-anon-public-api-key
 ```
@@ -96,10 +84,44 @@ to `.streamlit/secrets.toml` locally to test, then set the same two keys
 under your app's **Settings > Secrets** in the Streamlit Cloud UI (the
 `secrets.toml` file itself is git-ignored and never pushed).
 
-## 4. Run the app
+## 3. Verify the data and run the app
+
+Install dependencies and start Streamlit:
 
 ```bash
+pip install -r requirements.txt
 streamlit run app.py
+```
+
+To diagnose Supabase access before starting Streamlit, run:
+
+```bash
+python db/check_supabase_access.py
+```
+
+The diagnostic reads `SUPABASE_URL` and `SUPABASE_KEY` from `.env`, tests all
+ten dashboard tables in the `asset_management` schema, verifies the required
+columns, and reports the accessible row count. To test one table only:
+
+```bash
+python db/check_supabase_access.py --table Clients
+```
+
+The script exits with status `0` when all requested checks pass and status `1`
+when credentials are missing, the client cannot be created, or a table check
+fails. It never prints the Supabase key.
+
+Before loading dashboard data, the app checks every expected table for its
+required columns. Empty core tables (`InvestmentAdvisors`, `Clients`,
+`Accounts`, `Portfolios`, `Assets`, and `PortfolioHoldings`) stop startup;
+empty supporting tables produce warnings for the affected dashboard sections.
+The app displays the specific table or column problem when validation fails.
+
+The optional CSV utility can still refresh existing tables when needed. It
+uses the `service_role` key and the configured `asset_management` schema:
+
+```bash
+python scripts/load_csv_to_supabase.py --data-dir ./data
 ```
 
 The sidebar lets you widen the performance-history lookback window and

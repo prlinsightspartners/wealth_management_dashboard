@@ -18,6 +18,23 @@ TBL_TRANSACTIONS = "Transactions"
 TBL_INTERACTIONS = "ClientInteractions"
 TBL_PORTFOLIO_METRICS = "PortfolioPerformanceMetrics"
 TBL_ADVISOR_METRICS = "AdvisorPerformanceMetrics"
+SUPABASE_SCHEMA = "asset_management"
+
+# Columns required by the dashboard loaders and calculations.
+REQUIRED_COLUMNS = {
+    TBL_ADVISORS: ["AdvisorID", "FirstName", "LastName", "Status", "HireDate"],
+    TBL_CLIENTS: ["ClientID", "AdvisorID", "FirstName", "LastName", "DateOfBirth", "RegistrationDate", "City", "State", "RiskTolerance"],
+    TBL_ACCOUNTS: ["AccountID", "ClientID", "AccountType", "Balance"],
+    TBL_PORTFOLIOS: ["PortfolioID", "AccountID", "PortfolioName", "InvestmentStrategy", "LastRebalanceDate"],
+    TBL_ASSETS: ["AssetID", "AssetName", "AssetType", "TickerSymbol"],
+    TBL_HOLDINGS: ["HoldingID", "PortfolioID", "AssetID", "Quantity", "PurchasePrice", "CurrentPrice"],
+    TBL_TRANSACTIONS: ["TransactionID", "AccountID", "AssetID", "TransactionType", "TransactionDate", "Quantity", "PricePerUnit", "Amount", "Commission"],
+    TBL_INTERACTIONS: ["InteractionID", "ClientID", "AdvisorID", "InteractionDate", "InteractionType", "FollowUpDate"],
+    TBL_PORTFOLIO_METRICS: ["MetricID", "PortfolioID", "AUM", "ReturnAbsolute", "SharpeRatio", "Beta", "CalculationDate"],
+    TBL_ADVISOR_METRICS: ["MetricID", "AdvisorID", "TotalAUM", "AverageClientReturn", "NumberOfClients", "CalculationDate"],
+}
+
+REQUIRED_NONEMPTY_TABLES = [TBL_ADVISORS, TBL_CLIENTS, TBL_ACCOUNTS, TBL_PORTFOLIOS, TBL_ASSETS, TBL_HOLDINGS]
 
 # ---------------------------------------------------------------------------
 # App-wide settings

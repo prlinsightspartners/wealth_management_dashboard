@@ -2,9 +2,9 @@
 """
 scripts/load_csv_to_supabase.py
 
-One-time (or repeatable) loader that pushes the synthetic CSV exports into
-their matching Supabase tables. Run this AFTER executing sql/schema.sql in
-the Supabase SQL Editor.
+    Optional loader for pushing synthetic CSV exports into existing Supabase
+    tables. The Streamlit app validates and reads the existing data directly;
+    this script is only needed when refreshing that data.
 
 Usage
 -----
@@ -34,11 +34,13 @@ import pandas as pd
 from dotenv import load_dotenv
 from supabase import create_client
 
+import config as cfg
+
 load_dotenv()
 
 # (csv filename without extension, Supabase table name, primary key column)
 LOAD_ORDER = [
-    ("InvestmentAdvisors", "InvestmentAdvisors", "AdvisorID"),
+    ("Investmentadvisors", "InvestmentAdvisors", "AdvisorID"),
     ("Clients", "Clients", "ClientID"),
     ("Accounts", "Accounts", "AccountID"),
     ("Portfolios", "Portfolios", "PortfolioID"),
@@ -126,7 +128,9 @@ def main():
 
         total = len(records)
         for i, batch in enumerate(batched(records, args.batch_size), start=1):
-            client.table(table_name).upsert(batch, on_conflict=pk).execute()
+            client.schema(cfg.SUPABASE_SCHEMA).table(table_name).upsert(
+                batch, on_conflict=pk
+            ).execute()
             done = min(i * args.batch_size, total)
             print(f"    ...{done}/{total} rows", end="\r")
         print(f"    done: {total}/{total} rows.        ")
