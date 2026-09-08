@@ -2,9 +2,9 @@
 
 A multi-page Streamlit dashboard for a Canadian institutional wealth & asset
 management firm, reading live from Supabase. Built on the 10 core tables:
-`InvestmentAdvisors`, `Clients`, `Accounts`, `Portfolios`, `Assets`,
-`PortfolioHoldings`, `Transactions`, `ClientInteractions`,
-`PortfolioPerformanceMetrics`, and `AdvisorPerformanceMetrics`.
+`Investmentadvisors`, `Clients`, `Accounts`, `Portfolios`, `Assets`,
+`Portfolioholdings`, `Transactions`, `Clientinteractions`,
+`Portfolioperformancemetrics`, and `Advisorperformancemetrics`.
 
 ## What's included
 
@@ -61,14 +61,18 @@ The application expects the existing tables and data in the Supabase
 2. Confirm that the anon key has `SELECT` access to the `asset_management`
   schema and its tables.
 
-The ten expected tables are `InvestmentAdvisors`, `Clients`, `Accounts`,
-`Portfolios`, `Assets`, `PortfolioHoldings`, `Transactions`,
-`ClientInteractions`, `PortfolioPerformanceMetrics`, and
-`AdvisorPerformanceMetrics`.
+The ten expected tables are `Investmentadvisors`, `Clients`, `Accounts`,
+`Portfolios`, `Assets`, `Portfolioholdings`, `Transactions`,
+`Clientinteractions`, `Portfolioperformancemetrics`, and
+`Advisorperformancemetrics`.
 
 The `sql/schema.sql` file is retained as a reference for the expected table
 structure. Do not run it against the existing database unless you are setting
 up a separate database and have reviewed its schema and policies.
+
+If the existing database still uses the previous multi-word table names, run
+`sql/rename_tables.sql` in the `asset_management` schema before starting the
+updated app.
 
 ## 2. Configure the app's credentials
 
@@ -112,8 +116,8 @@ when credentials are missing, the client cannot be created, or a table check
 fails. It never prints the Supabase key.
 
 Before loading dashboard data, the app checks every expected table for its
-required columns. Empty core tables (`InvestmentAdvisors`, `Clients`,
-`Accounts`, `Portfolios`, `Assets`, and `PortfolioHoldings`) stop startup;
+required columns. Empty core tables (`Investmentadvisors`, `Clients`,
+`Accounts`, `Portfolios`, `Assets`, and `Portfolioholdings`) stop startup;
 empty supporting tables produce warnings for the affected dashboard sections.
 The app displays the specific table or column problem when validation fails.
 
@@ -130,8 +134,8 @@ see `CACHE_TTL_SECONDS` in `config.py`).
 
 ## Notes on scaling
 
-- Large tables (`Transactions`, `PortfolioPerformanceMetrics`,
-  `AdvisorPerformanceMetrics`) are pulled with a server-side date filter
+- Large tables (`Transactions`, `Portfolioperformancemetrics`,
+  `Advisorperformancemetrics`) are pulled with a server-side date filter
   (`months_back`) so the app stays responsive — widen this from each page's
   sidebar control as needed.
 - All Supabase reads paginate past PostgREST's default 1,000-row cap

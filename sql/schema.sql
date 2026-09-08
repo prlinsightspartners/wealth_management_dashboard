@@ -10,21 +10,21 @@
 
 -- Drop in reverse-dependency order if you need to re-run this script cleanly.
 -- Uncomment if you want a full reset:
--- drop table if exists "PortfolioPerformanceMetrics" cascade;
--- drop table if exists "AdvisorPerformanceMetrics" cascade;
--- drop table if exists "ClientInteractions" cascade;
+-- drop table if exists "Portfolioperformancemetrics" cascade;
+-- drop table if exists "Advisorperformancemetrics" cascade;
+-- drop table if exists "Clientinteractions" cascade;
 -- drop table if exists "Transactions" cascade;
--- drop table if exists "PortfolioHoldings" cascade;
+-- drop table if exists "Portfolioholdings" cascade;
 -- drop table if exists "Portfolios" cascade;
 -- drop table if exists "Accounts" cascade;
 -- drop table if exists "Clients" cascade;
 -- drop table if exists "Assets" cascade;
--- drop table if exists "InvestmentAdvisors" cascade;
+-- drop table if exists "Investmentadvisors" cascade;
 
 -- ----------------------------------------------------------------------------
--- 1. InvestmentAdvisors
+-- 1. Investmentadvisors
 -- ----------------------------------------------------------------------------
-create table if not exists "InvestmentAdvisors" (
+create table if not exists "Investmentadvisors" (
     "AdvisorID"     integer primary key,
     "FirstName"     text not null,
     "LastName"      text not null,
@@ -40,7 +40,7 @@ create table if not exists "InvestmentAdvisors" (
 -- ----------------------------------------------------------------------------
 create table if not exists "Clients" (
     "ClientID"         integer primary key,
-    "AdvisorID"        integer references "InvestmentAdvisors"("AdvisorID"),
+    "AdvisorID"        integer references "Investmentadvisors"("AdvisorID"),
     "FirstName"        text not null,
     "LastName"         text not null,
     "DateOfBirth"      date,
@@ -91,9 +91,9 @@ create table if not exists "Assets" (
 );
 
 -- ----------------------------------------------------------------------------
--- 6. PortfolioHoldings
+-- 6. Portfolioholdings
 -- ----------------------------------------------------------------------------
-create table if not exists "PortfolioHoldings" (
+create table if not exists "Portfolioholdings" (
     "HoldingID"     integer primary key,
     "PortfolioID"   integer references "Portfolios"("PortfolioID"),
     "AssetID"       integer references "Assets"("AssetID"),
@@ -120,12 +120,12 @@ create table if not exists "Transactions" (
 );
 
 -- ----------------------------------------------------------------------------
--- 8. ClientInteractions
+-- 8. Clientinteractions
 -- ----------------------------------------------------------------------------
-create table if not exists "ClientInteractions" (
+create table if not exists "Clientinteractions" (
     "InteractionID"   integer primary key,
     "ClientID"        integer references "Clients"("ClientID"),
-    "AdvisorID"       integer references "InvestmentAdvisors"("AdvisorID"),
+    "AdvisorID"       integer references "Investmentadvisors"("AdvisorID"),
     "InteractionDate" timestamp,
     "InteractionType" text,
     "Notes"           text,
@@ -133,9 +133,9 @@ create table if not exists "ClientInteractions" (
 );
 
 -- ----------------------------------------------------------------------------
--- 9. PortfolioPerformanceMetrics
+-- 9. Portfolioperformancemetrics
 -- ----------------------------------------------------------------------------
-create table if not exists "PortfolioPerformanceMetrics" (
+create table if not exists "Portfolioperformancemetrics" (
     "MetricID"           integer primary key,
     "PortfolioID"        integer references "Portfolios"("PortfolioID"),
     "AUM"                numeric(18,2),
@@ -150,11 +150,11 @@ create table if not exists "PortfolioPerformanceMetrics" (
 );
 
 -- ----------------------------------------------------------------------------
--- 10. AdvisorPerformanceMetrics
+-- 10. Advisorperformancemetrics
 -- ----------------------------------------------------------------------------
-create table if not exists "AdvisorPerformanceMetrics" (
+create table if not exists "Advisorperformancemetrics" (
     "MetricID"            integer primary key,
-    "AdvisorID"           integer references "InvestmentAdvisors"("AdvisorID"),
+    "AdvisorID"           integer references "Investmentadvisors"("AdvisorID"),
     "TotalAUM"            numeric(18,2),
     "AverageClientReturn" numeric(10,5),
     "NumberOfClients"     integer,
@@ -170,41 +170,38 @@ create index if not exists idx_clients_advisor          on "Clients" ("AdvisorID
 create index if not exists idx_clients_state             on "Clients" ("State");
 create index if not exists idx_accounts_client           on "Accounts" ("ClientID");
 create index if not exists idx_portfolios_account        on "Portfolios" ("AccountID");
-create index if not exists idx_holdings_portfolio        on "PortfolioHoldings" ("PortfolioID");
-create index if not exists idx_holdings_asset            on "PortfolioHoldings" ("AssetID");
+create index if not exists idx_holdings_portfolio        on "Portfolioholdings" ("PortfolioID");
+create index if not exists idx_holdings_asset            on "Portfolioholdings" ("AssetID");
 create index if not exists idx_transactions_account      on "Transactions" ("AccountID");
 create index if not exists idx_transactions_asset        on "Transactions" ("AssetID");
 create index if not exists idx_transactions_date         on "Transactions" ("TransactionDate");
-create index if not exists idx_interactions_client       on "ClientInteractions" ("ClientID");
-create index if not exists idx_interactions_advisor      on "ClientInteractions" ("AdvisorID");
-create index if not exists idx_interactions_date         on "ClientInteractions" ("InteractionDate");
-create index if not exists idx_pf_metrics_portfolio_date on "PortfolioPerformanceMetrics" ("PortfolioID", "CalculationDate");
-create index if not exists idx_adv_metrics_advisor_date  on "AdvisorPerformanceMetrics" ("AdvisorID", "CalculationDate");
+create index if not exists idx_interactions_client       on "Clientinteractions" ("ClientID");
+create index if not exists idx_interactions_advisor      on "Clientinteractions" ("AdvisorID");
+create index if not exists idx_interactions_date         on "Clientinteractions" ("InteractionDate");
+create index if not exists idx_pf_metrics_portfolio_date on "Portfolioperformancemetrics" ("PortfolioID", "CalculationDate");
+create index if not exists idx_adv_metrics_advisor_date  on "Advisorperformancemetrics" ("AdvisorID", "CalculationDate");
 
--- ============================================================================
--- Row Level Security — enable and allow read access for the dashboard's
--- anon/service role. Adjust policies to fit your actual auth model before
--- going to production; this default is permissive read-only access.
--- ============================================================================
-alter table "InvestmentAdvisors" enable row level security;
+alter table "Investmentadvisors" enable row level security;
+grant usage on schema asset_management to anon, authenticated;
+grant select on all tables in schema asset_management to anon, authenticated;
 alter table "Clients" enable row level security;
 alter table "Accounts" enable row level security;
 alter table "Portfolios" enable row level security;
 alter table "Assets" enable row level security;
-alter table "PortfolioHoldings" enable row level security;
+alter table "Portfolioholdings" enable row level security;
 alter table "Transactions" enable row level security;
-alter table "ClientInteractions" enable row level security;
-alter table "PortfolioPerformanceMetrics" enable row level security;
-alter table "AdvisorPerformanceMetrics" enable row level security;
+alter table "Clientinteractions" enable row level security;
+alter table "Portfolioperformancemetrics" enable row level security;
+alter table "Advisorperformancemetrics" enable row level security;
 
 do $$
 declare
     tbl text;
 begin
     foreach tbl in array array[
-        'InvestmentAdvisors','Clients','Accounts','Portfolios','Assets',
-        'PortfolioHoldings','Transactions','ClientInteractions',
-        'PortfolioPerformanceMetrics','AdvisorPerformanceMetrics'
+        'Investmentadvisors','Clients','Accounts','Portfolios','Assets',
+        'Portfolioholdings','Transactions','Clientinteractions',
+        'Portfolioperformancemetrics','Advisorperformancemetrics'
     ]
     loop
         execute format('drop policy if exists "Allow read access on %I" on %I;', tbl, tbl);

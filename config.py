@@ -8,16 +8,16 @@ page renders consistently.
 # ---------------------------------------------------------------------------
 # Supabase table names (must match the tables created via sql/schema.sql)
 # ---------------------------------------------------------------------------
-TBL_ADVISORS = "InvestmentAdvisors"
+TBL_ADVISORS = "Investmentadvisors"
 TBL_CLIENTS = "Clients"
 TBL_ACCOUNTS = "Accounts"
 TBL_PORTFOLIOS = "Portfolios"
 TBL_ASSETS = "Assets"
-TBL_HOLDINGS = "PortfolioHoldings"
+TBL_HOLDINGS = "Portfolioholdings"
 TBL_TRANSACTIONS = "Transactions"
-TBL_INTERACTIONS = "ClientInteractions"
-TBL_PORTFOLIO_METRICS = "PortfolioPerformanceMetrics"
-TBL_ADVISOR_METRICS = "AdvisorPerformanceMetrics"
+TBL_INTERACTIONS = "Clientinteractions"
+TBL_PORTFOLIO_METRICS = "Portfolioperformancemetrics"
+TBL_ADVISOR_METRICS = "Advisorperformancemetrics"
 SUPABASE_SCHEMA = "asset_management"
 
 # Columns required by the dashboard loaders and calculations.

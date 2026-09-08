@@ -40,34 +40,34 @@ load_dotenv()
 
 # (csv filename without extension, Supabase table name, primary key column)
 LOAD_ORDER = [
-    ("Investmentadvisors", "InvestmentAdvisors", "AdvisorID"),
+    ("Investmentadvisors", "Investmentadvisors", "AdvisorID"),
     ("Clients", "Clients", "ClientID"),
     ("Accounts", "Accounts", "AccountID"),
     ("Portfolios", "Portfolios", "PortfolioID"),
     ("Assets", "Assets", "AssetID"),
-    ("PortfolioHoldings", "PortfolioHoldings", "HoldingID"),
+    ("PortfolioHoldings", "Portfolioholdings", "HoldingID"),
     ("Transactions", "Transactions", "TransactionID"),
-    ("ClientInteractions", "ClientInteractions", "InteractionID"),
-    ("PortfolioPerformanceMetrics", "PortfolioPerformanceMetrics", "MetricID"),
-    ("AdvisorPerformanceMetrics", "AdvisorPerformanceMetrics", "MetricID"),
+    ("ClientInteractions", "Clientinteractions", "InteractionID"),
+    ("PortfolioPerformanceMetrics", "Portfolioperformancemetrics", "MetricID"),
+    ("AdvisorPerformanceMetrics", "Advisorperformancemetrics", "MetricID"),
 ]
 
 DATE_COLUMNS_BY_TABLE = {
-    "InvestmentAdvisors": ["HireDate"],
+    "Investmentadvisors": ["HireDate"],
     "Clients": ["DateOfBirth", "RegistrationDate"],
     "Accounts": ["OpeningDate"],
     "Portfolios": ["CreationDate", "LastRebalanceDate"],
-    "PortfolioHoldings": ["PurchaseDate"],
-    "ClientInteractions": ["FollowUpDate"],
-    "PortfolioPerformanceMetrics": ["CalculationDate"],
-    "AdvisorPerformanceMetrics": ["CalculationDate"],
+    "Portfolioholdings": ["PurchaseDate"],
+    "Clientinteractions": ["FollowUpDate"],
+    "Portfolioperformancemetrics": ["CalculationDate"],
+    "Advisorperformancemetrics": ["CalculationDate"],
 }
 DATETIME_COLUMNS_BY_TABLE = {
-    "PortfolioHoldings": ["LastUpdated"],
+    "Portfolioholdings": ["LastUpdated"],
     "Transactions": ["TransactionDate"],
-    "ClientInteractions": ["InteractionDate"],
-    "PortfolioPerformanceMetrics": ["CreatedAt", "UpdatedAt"],
-    "AdvisorPerformanceMetrics": ["CreatedAt", "UpdatedAt"],
+    "Clientinteractions": ["InteractionDate"],
+    "Portfolioperformancemetrics": ["CreatedAt", "UpdatedAt"],
+    "Advisorperformancemetrics": ["CreatedAt", "UpdatedAt"],
 }
 
 

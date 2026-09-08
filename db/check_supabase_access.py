@@ -39,8 +39,10 @@ def _diagnostic_hint(exc: Exception) -> str:
         return " Add asset_management to Supabase API exposed schemas, then retry."
     if "Could not find the table" in message or "PGRST205" in message:
         return " Check the exact case of the table name and reload the PostgREST schema cache."
-    if "permission" in message.lower() or "42501" in message:
-        return " Grant the configured key SELECT access to this schema/table."
+        if "permission denied for schema" in message.lower():
+            return " Grant USAGE on asset_management to the API role, expose the schema in Supabase API settings, then reload the schema cache."
+        if "permission" in message.lower() or "42501" in message:
+            return " Grant the configured API role SELECT access to this schema/table and check its RLS policy."
     return ""
 
 

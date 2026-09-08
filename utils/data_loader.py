@@ -5,7 +5,7 @@ pandas DataFrame with date/datetime columns parsed. Results are cached with
 st.cache_data so repeated page visits within the TTL window don't re-hit
 Supabase.
 
-Heavy tables (Transactions, PortfolioHoldings, PortfolioPerformanceMetrics)
+Heavy tables (Transactions, Portfolioholdings, Portfolioperformancemetrics)
 accept a `months_back` argument that pushes a date filter down to the
 Supabase query itself, rather than pulling the full table and filtering
 client-side.
