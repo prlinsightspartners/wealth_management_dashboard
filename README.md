@@ -88,6 +88,13 @@ to `.streamlit/secrets.toml` locally to test, then set the same two keys
 under your app's **Settings > Secrets** in the Streamlit Cloud UI (the
 `secrets.toml` file itself is git-ignored and never pushed).
 
+GitHub Actions repository secrets are only available to GitHub Actions
+workflows; Streamlit Community Cloud cannot read them directly. Configure
+these credentials in the Streamlit app's **Settings > Secrets**. If a GitHub
+Actions workflow runs the diagnostic, it must explicitly pass the repository
+secrets to the script as `SUPABASE_URL` and `SUPABASE_KEY` environment
+variables.
+
 ## 3. Verify the data and run the app
 
 Install dependencies and start Streamlit:
@@ -103,9 +110,10 @@ To diagnose Supabase access before starting Streamlit, run:
 python db/check_supabase_access.py
 ```
 
-The diagnostic reads `SUPABASE_URL` and `SUPABASE_KEY` from `.env`, tests all
-ten dashboard tables in the `asset_management` schema, verifies the required
-columns, and reports the accessible row count. To test one table only:
+The diagnostic reads `SUPABASE_URL` and `SUPABASE_KEY` from Streamlit secrets,
+environment variables, or `.env`, tests all ten dashboard tables in the
+`asset_management` schema, verifies the required columns, and reports the
+accessible row count. To test one table only:
 
 ```bash
 python db/check_supabase_access.py --table Clients

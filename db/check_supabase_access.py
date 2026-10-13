@@ -7,15 +7,18 @@ Optional arguments:
     python db/check_supabase_access.py --schema asset_management
     python db/check_supabase_access.py --table Clients
 
-The script reads SUPABASE_URL and SUPABASE_KEY from the environment or a
-project-root .env file. It never prints the key.
+The script reads SUPABASE_URL and SUPABASE_KEY from Streamlit secrets,
+environment variables, or a project-root .env file. It never prints the key.
 """
 import argparse
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 from dotenv import load_dotenv
+import streamlit as st
+from streamlit.errors import StreamlitSecretNotFoundError
 from supabase import create_client
 
 # Allow this script to be run directly from the project root or from db/.
@@ -31,6 +34,15 @@ load_dotenv(PROJECT_ROOT / ".env")
 def _error_text(exc: Exception) -> str:
     message = str(exc).strip().replace("\n", " ")
     return message or exc.__class__.__name__
+
+
+def _get_credential(key: str) -> Optional[str]:
+    """Look up a credential in Streamlit secrets, then the environment."""
+    try:
+        value = st.secrets.get(key)
+    except StreamlitSecretNotFoundError:
+        value = None
+    return value or os.environ.get(key)
 
 
 def _diagnostic_hint(exc: Exception) -> str:
@@ -61,10 +73,13 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_KEY")
+    url = _get_credential("SUPABASE_URL")
+    key = _get_credential("SUPABASE_KEY")
     if not url or not key:
-        print("FAIL: SUPABASE_URL and SUPABASE_KEY must be set in .env or the environment.")
+        print(
+            "FAIL: SUPABASE_URL and SUPABASE_KEY must be set in Streamlit secrets, "
+            "the environment, or the project-root .env file."
+        )
         return 1
 
     try:
